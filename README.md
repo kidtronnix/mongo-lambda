@@ -1,5 +1,7 @@
-mongo-λ **EXPERIMENTAL**
-------------------------
+mongo-λ
+--------
+
+***EXPERIMENTAL***
 
 A mongo [lambda architecture](http://www.manning.com/marz/) implementation with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
