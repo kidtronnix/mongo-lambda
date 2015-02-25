@@ -20,11 +20,10 @@ A mongo [lambda architecture](http://www.manning.com/marz/) implementation with 
 		dataRetention: 24*60*60*1000
 	},
 	speedLayer: {
-		collection: "delta",
+		collection: "delta"
 	},
 	serveringLayer: {
-		combine: function(precomputed, onTheFly) {
-			// precomputed comes from onTheFly
+		combine: function(batchReports, liveDeltaReport) {
 		}
 	}
 }
@@ -33,26 +32,24 @@ A mongo [lambda architecture](http://www.manning.com/marz/) implementation with 
 ### Responsibilities of Module
 
 Report Runner
- - Generating recurring reports in batch layer. Will run using supplied `$aggPipeline` in config.
+ - Generating recurring reports in batch layer. Will run using `$aggPipeline`.
+ - Combine report method.
 
 
 Data Management
- - Scrub data from batch layer's master collection after `expires`.
+ - Scrub data from batch layer's master collection after it expires past `dataRentention`.
  - Scrub data from delta when batch view is produced.
-
-Public Methods
-- Expose the methods to the API:
 
 ### API
 
-### `.insert(data)`
+### `.insertData(data)`
 
-Will run a  data point into both `master` collection and `delta` collection.
+Will insert data point into batch and speed layer's mongo collection.
 
-### `.report("trendingTop100")`
+### `.getReport("trendingTop100")`
 
-Fetches a **"trendingTop100"** report, this will use the supplied `combine` function.
+Fetches a **"trendingTop100"** report this will use the supplied `combine` function.
 
 #### NOTE
 
-* *Live* means that the data is near realtime, i hesitate to use the word realtime because nothing is completely realtime.
+* *Live* means that the data is near realtime, I hesitate to use the word realtime because nothing is completely realtime.
