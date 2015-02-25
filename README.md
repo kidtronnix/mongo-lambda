@@ -1,9 +1,9 @@
-mongo-λ
--------------
+mongo-λ **EXPERIMENTAL**
+------------------------
 
-A mongo [lambda architecture](http://www.manning.com/marz/) implementation with simple API for providing mongo's aggregation pipepline reports.
+A mongo [lambda architecture](http://www.manning.com/marz/) implementation with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
-### Model
+### Model Implementation
 
 ```js
 {
@@ -43,11 +43,11 @@ Public Methods
 
 ### API
 
-## `.insert(data)`
+### `.insert(data)`
 
 Will run a  data point into both `master` collection and `delta` collection.
 
-## `.report("trendingTop100")`
+### `.report("trendingTop100")`
 
 Fetches a **"trendingTop100"** report, this will use the supplied `combine` function.
 
