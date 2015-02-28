@@ -19,5 +19,10 @@
   "bugs": {
     "url": "https://github.com/smaxwellstewart/mongo-lambda/issues"
   },
-  "homepage": "https://github.com/smaxwellstewart/mongo-lambda"
+  "homepage": "https://github.com/smaxwellstewart/mongo-lambda",
+  "dependencies": {
+    "async": "^0.9.0",
+    "hoek": "^2.11.0",
+    "joi": "^5.1.0"
+  }
 }

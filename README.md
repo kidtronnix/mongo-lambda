@@ -22,7 +22,7 @@ A mongo [lambda architecture](http://www.manning.com/marz/) implementation with 
 	speedLayer: {
 		collection: "delta"
 	},
-	serveringLayer: {
+	servingLayer: {
 		combine: function(batchReports, liveDeltaReport) {
 		}
 	}
