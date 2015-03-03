@@ -10,13 +10,24 @@ var lambda = new ML.Lambda({
     },
     servingLayer: {
         combine: function(batchReports, liveDeltaReport) {
-            console.log('COMINED!')
+            console.log('* CLIENT SIDE: COMbINED!')
         }
     }
 });
 
-lambda.insert({name: "simon"}, function(err, results) {
-    console.log('DONE!');
+lambda.insertData({name: "simon"}, function(err, results) {
+    console.log('* CLIENT SIDE: DONE!');
+    console.log(results);
+});
+
+lambda.insertReport({
+    name: "job2",
+    agg: {},
+    cron: "* * * * * *",
+    timezone: "US"
+},
+function(err, results) {
+    console.log('* CLIENT SIDE: Inserted report!');
     console.log(results);
 });
 

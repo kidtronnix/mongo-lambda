@@ -22,6 +22,7 @@
   "homepage": "https://github.com/smaxwellstewart/mongo-lambda",
   "dependencies": {
     "async": "^0.9.0",
+    "cron": "^1.0.8",
     "hoek": "^2.11.0",
     "joi": "^5.1.0"
   }
