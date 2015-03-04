@@ -1,6 +1,6 @@
 var ML = require('..');
 
-var lambda = new ML.Lambda({
+var config = {
     batchLayer: {
         collection: "master",
         dataRetention: 24*60*60*1000
@@ -13,36 +13,36 @@ var lambda = new ML.Lambda({
             console.log('* CLIENT SIDE: COMbINED!')
         }
     }
+};
+
+var lambda = new ML.Lambda(config, function(err) {
+
+    lambda.insertData({name: "simon"}, function(err, results) {
+        console.log('* CLIENT SIDE: DONE!');
+        console.log(results);
+    });
+
+    lambda.insertReport({
+        name: "job2",
+        agg: {},
+        cron: "*/10 * * * * *",
+        timezone: "US"
+    },
+    function(err, results) {
+        // console.log('* CLIENT SIDE: Inserted report!');
+        // console.log(results);
+    });
+
 });
 
-lambda.insertData({name: "simon"}, function(err, results) {
-    console.log('* CLIENT SIDE: DONE!');
-    console.log(results);
-});
-
-lambda.insertReport({
-    name: "job2",
-    agg: {},
-    cron: "* * * * * *",
-    timezone: "US"
-},
-function(err, results) {
-    console.log('* CLIENT SIDE: Inserted report!');
-    console.log(results);
-});
 
 //
-// var report = {};
-// function process(key,value) {
-//     log(key + " : "+value);
-// }
-//
-// function traverse(o,func) {
-//     for (var i in o) {
-//         func.apply(this,[i,o[i]]);
-//         if (o[i] !== null && typeof(o[i])=="object") {
-//             //going on step down in the object tree!!
-//             traverse(o[i],func);
-//         }
-//     }
-// }
+// lambda.insertReport({
+//     name: "job1",
+//     agg: {},
+//     cron: "*/5 * * * * *",
+//     timezone: "US"
+// }, function(err, results) {
+//     // console.log('* CLIENT SIDE: Inserted report!');
+//     // console.log(results);
+// });
