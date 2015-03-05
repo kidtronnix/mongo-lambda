@@ -1,7 +1,9 @@
 mongo-λ
 --------
 
-***EXPERIMENTAL***
+[![Build Status](https://travis-ci.org/smaxwellstewart/mongo-lambda.svg?branch=master)](https://travis-ci.org/smaxwellstewart/mongo-lambda)
+
+***WARNING! EXPERIMENTAL WORK IN PROGRESS***
 
 A mongo [lambda architecture](http://www.manning.com/marz/) implementation with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
