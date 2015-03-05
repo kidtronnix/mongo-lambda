@@ -4,7 +4,8 @@
   "description": "A mongo lambda architecture implementation with simple API for providing mongo's aggregation pipepline reports.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "test": "lab -a code",
+      "test-cov-html": "lab -r html -o coverage.html -a code"
   },
   "repository": {
     "type": "git",
@@ -26,5 +27,9 @@
     "hoek": "^2.11.0",
     "joi": "^5.1.0",
     "mongodb": "^1.4.32"
+  },
+  "devDependencies": {
+    "code": "^1.3.0",
+    "lab": "^5.4.0"
   }
 }
