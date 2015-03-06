@@ -7,11 +7,6 @@ var config = {
     },
     speedLayer: {
         collection: "delta"
-    },
-    servingLayer: {
-        combine: function(batchReports, liveDeltaReport) {
-            console.log('* CLIENT SIDE: COMbINED!')
-        }
     }
 };
 
