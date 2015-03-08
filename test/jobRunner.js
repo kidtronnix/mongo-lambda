@@ -19,7 +19,8 @@ describe('Mongo Lambda Job Runner', function () {
 
     var config = {
         batchLayer: {
-            collection: "master",
+            masterCollection: "master",
+            batchesCollection: "batches",
             dataRetention: 1000
         },
         speedLayer: {
@@ -27,14 +28,17 @@ describe('Mongo Lambda Job Runner', function () {
         }
     };
 
-    it('scrubs data from batch layer', { timeout: config.batchLayer.dataRetention + 5000 },function (done) {
+    it('scrubs data from batch layer', { timeout: config.batchLayer.dataRetention + 5000 }, function (done) {
+
+        var agg = [{ $group: {_id: null, count: { $sum: 1 }}}];
 
         var report = {
             name: "job2",
-            agg: {},
+            agg: JSON.stringify(agg),
             cron: "* * * * * *",
             timezone: "US",
             combine: function(batches, onTheFly) { 
+
             }
         };
 

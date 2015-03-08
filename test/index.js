@@ -18,7 +18,8 @@ describe('Mongo Lambda API', function () {
 
     var config = {
         batchLayer: {
-            collection: "master",
+            masterCollection: "master",
+            batchesCollection: "batches",
             dataRetention: 24*60*60*1000
         },
         speedLayer: {
@@ -52,13 +53,15 @@ describe('Mongo Lambda API', function () {
         var lambda = new ML.Lambda(config, function(err) {
             expect(err).to.not.exist();
 
+            var agg = [{ $group: {_id: null, count: { $sum: 1 }}}];
+
             var report = {
                 name: "job2",
-                agg: {},
+                agg: JSON.stringify(agg),
                 cron: "*/10 * * * * *",
                 timezone: "US",
-                combine: function(batches, onTheFly) {
-                    
+                combine: function(batches, onTheFly) { 
+
                 }
             };
 
