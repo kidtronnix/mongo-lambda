@@ -20,7 +20,9 @@ describe('Mongo Lambda API', function () {
         batchLayer: {
             masterCollection: "master",
             batchesCollection: "batches",
-            dataRetention: 24*60*60*1000
+            dataRetention: 24*60*60*1000,
+            scrubCron: '*/20 * * * * *',
+            scrubCronTimezone: 'US'
         },
         speedLayer: {
             collection: "delta"
@@ -59,10 +61,7 @@ describe('Mongo Lambda API', function () {
                 name: "job2",
                 agg: JSON.stringify(agg),
                 cron: "*/10 * * * * *",
-                timezone: "US",
-                combine: function(batches, onTheFly) { 
-
-                }
+                timezone: "US"
             };
 
             lambda.insertReport(report, function(err, results) {

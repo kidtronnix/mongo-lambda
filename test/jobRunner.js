@@ -21,7 +21,9 @@ describe('Mongo Lambda Job Runner', function () {
         batchLayer: {
             masterCollection: "master",
             batchesCollection: "batches",
-            dataRetention: 1000
+            dataRetention: 1000,
+            scrubCron: '* * * * * *',
+            scrubCronTimezone: 'US'
         },
         speedLayer: {
             collection: "delta"
@@ -36,10 +38,7 @@ describe('Mongo Lambda Job Runner', function () {
             name: "job2",
             agg: JSON.stringify(agg),
             cron: "* * * * * *",
-            timezone: "US",
-            combine: function(batches, onTheFly) { 
-
-            }
+            timezone: "US"
         };
 
 
