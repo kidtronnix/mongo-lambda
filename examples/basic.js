@@ -4,7 +4,9 @@ var config = {
     batchLayer: {
         masterCollection: "master",
         batchesCollection: "batches",
-        dataRetention: 2*60*1000
+        dataRetention: 2*60*1000,
+        scrubCron: '*/20 * * * * *',
+        scrubCronTimezone: 'US'
     },
     speedLayer: {
         collection: "delta"
@@ -19,10 +21,7 @@ var lambda = new ML.Lambda(config, function(err) {
         name: "job1",
         agg: JSON.stringify(agg),
         cron: "*/5 * * * * *",
-        timezone: "US",
-        combine: function(batches) {
-            return 6;
-        }
+        timezone: "US"
     };
     
     lambda.insertReport(report, function(err, results) {
@@ -31,17 +30,28 @@ var lambda = new ML.Lambda(config, function(err) {
 
         setInterval(function() {
             var query = { name: report.name }
-            lambda.getReport(query, function(err, results) {
+            lambda.getReport('job1', query, function(err, batches, onTheFly) {
                 if (err) {
                     console.warn("ERROR GETTING REPORT: "+err.message);
                 }
                 var total = 0;
-                results.forEach(function(batch) {
-                    batch.data.forEach(function(batchData) {
-                        total = total + batchData.count
-                    })
+
+                batches.forEach(function(batch) {
+                    if (batch.data.length > 0) {
+                        total = total + batch.data[0].count;
+                    }
+                    
                 })
-                console.log('REPORT: '+ total)
+                console.log('- batch count: '+ total)
+
+                if(onTheFly.length > 0) {
+                    console.log('- speed count: '+ onTheFly[0].count)
+                    total = total + onTheFly[0].count;
+                }
+                console.log('---------------------');
+                console.log('TOTAL COUNT: '+total)
+                console.log('---------------------\n');
+                
             });
         }, 1000);
     });
