@@ -7,48 +7,86 @@ mongo-λ
 
 A mongo [lambda architecture](http://www.manning.com/marz/) implementation with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
-### Model Implementation
+
+### Usage
 
 ```js
-{
-	reports: [
-	{
-		name: "trending",
-		agg: $aggPipeline,
-		frequency: 60*60*1000
-	}],
-	batchLayer: {
-		collection: "master",
-		dataRetention: 24*60*60*1000
-	},
-	speedLayer: {
-		collection: "delta"
-	},
-	servingLayer: {
-		combine: function(batchReports, liveDeltaReport) {
-		}
-	}
-}
+var ML = require('mongo-lambda');
+
+var config = {
+    batchLayer: {
+        masterCollection: "master",
+        batchesCollection: "batches",
+        dataRetention: 2*60*1000,
+        scrubCron: '*/20 * * * * *',
+        scrubCronTimezone: 'US'
+    },
+    speedLayer: {
+        collection: "delta"
+    }
+};
+
+var lambda = new ML.Lambda(config, function(err) {
+
+    var agg = [{ $group: {_id: null, count: { $sum: 1 }}}];
+
+    var report = {
+        name: "job1",
+        agg: JSON.stringify(agg),
+        cron: "*/5 * * * * *",
+        timezone: "US"
+    };
+    
+    lambda.insertReport(report, function(err, results) {
+
+        setInterval(function() {
+            var query = { name: report.name }
+            lambda.getReport('job1', query, function(err, batches, onTheFly) {
+                if (err) {
+                    console.warn("ERROR GETTING REPORT: "+err.message);
+                }
+                var total = 0;
+
+                batches.forEach(function(batch) {
+                    if (batch.data.length > 0) {
+                        total = total + batch.data[0].count;
+                    }
+                    
+                })
+                console.log('- batch count: '+ total)
+
+                if(onTheFly.length > 0) {
+                    console.log('- speed count: '+ onTheFly[0].count)
+                    total = total + onTheFly[0].count;
+                }
+                console.log('---------------------');
+                console.log('TOTAL COUNT: '+total)
+                console.log('---------------------\n');
+                
+            });
+        }, 1000);
+    });
+
+});
 ```
 
 ### Responsibilities of Module
 
-Report Runner
  - Generating recurring reports in batch layer. Will run using `$aggPipeline`.
- - Combine report method.
-
-
-Data Management
- - Scrub data from batch layer's master collection after it expires past `dataRentention`.
- - Scrub data from delta when batch view is produced.
+ - Scrub data from batch (speed also) layer's master collections after it expires past `dataRentention`.
+ - Scrub data from delta when batch agg is produced.
 
 ### API
 
-### `.insertData(data)`
+### `.insertData(data, callback)`
 
-Will insert data point into batch and speed layer's mongo collection.
+Will insert data into batch and speed layer's mongo collection.
 
-### `.getReport("trendingTop100")`
+### `.insertReport(report, callback)`
+
+Will insert report into system and start new cron job to run supplied agg.
+
+### `.getReport('trendingTop100', [options], callback)`
 
 Fetches a **"trendingTop100"** report this will use the supplied `combine` function.
 
