@@ -1,19 +1,15 @@
 var ML = require('..');
 
-var config = {
-    batchLayer: {
-        masterCollection: "master",
-        batchesCollection: "batches",
-        dataRetention: 24*60*60*1000
-    },
-    speedLayer: {
-        collection: "delta"
-    }
-};
+var lambda = new ML.Lambda({
+    masterCollection: "master",
+    dataRetention: 2*60*1000,
+    scrubCron: '*/20 * * * * *',
+    scrubCronTimezone: 'US'
+})
 
-var lambda = new ML.Lambda(config, function(err) {
+lambda.start(function() {
     setInterval(function() {
-        lambda.insertData({ua: "iphone"}, function(err, results) {
+        lambda.insert({ua: "iphone"}, function(err, results) {
             if (err) {
                 console.warn("ERROR DRIPING DATA: "+err.message);
             }
