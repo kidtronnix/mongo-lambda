@@ -7,12 +7,12 @@ var lambda = new ML.Lambda({
     scrubCronTimezone: 'US'
 });
 
-lambda.report({
+lambda.reports([{
     name: "job1",
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
     timezone: "US"
-});
+}]);
 
 lambda.start(function() {
     setInterval(function() {

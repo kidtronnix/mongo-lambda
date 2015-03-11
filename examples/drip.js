@@ -5,7 +5,21 @@ var lambda = new ML.Lambda({
     dataRetention: 2*60*1000,
     scrubCron: '*/20 * * * * *',
     scrubCronTimezone: 'US'
-})
+});
+
+lambda.reports([{
+    name: "docCount",
+    agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
+    cron: "*/5 * * * * *",
+    timezone: "US"
+},
+{
+    name: "docCount2",
+    agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
+    cron: "*/5 * * * * *",
+    timezone: "US"
+}]);
+
 
 lambda.start(function() {
     setInterval(function() {
@@ -17,3 +31,4 @@ lambda.start(function() {
         });
     }, 1000);
 })
+
