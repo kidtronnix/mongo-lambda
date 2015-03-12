@@ -15,53 +15,42 @@ var it = lab.it;
 var expect = Code.expect;
 
 
-describe('Mongo Lambda Job Runner', function () {
+
+
+
+describe('Job Runner', function () {
 
     var config = {
-        batchLayer: {
-            masterCollection: "master",
-            batchesCollection: "batches",
-            dataRetention: 1000,
-            scrubCron: '* * * * * *',
-            scrubCronTimezone: 'US'
-        },
-        speedLayer: {
-            collection: "delta"
-        }
+        masterCollection: "master",
+        dataRetention: 2*1000,
+        scrubCron: '* * * * * *',
+        scrubCronTimezone: 'US'
     };
 
-    it('scrubs data from batch layer', { timeout: config.batchLayer.dataRetention + 5000 }, function (done) {
+    it('scrubs data from batch layer', { timeout: config.dataRetention + 5000 }, function (done) {
 
-        var agg = [{ $group: {_id: null, count: { $sum: 1 }}}];
+        var lambda = new ML.Lambda(config);
 
-        var report = {
-            name: "job2",
-            agg: JSON.stringify(agg),
-            cron: "* * * * * *",
+        lambda.reports([{
+            name: "docCount",
+            agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
+            cron: "*/5 * * * * *",
             timezone: "US"
-        };
+        }]);
 
 
-        var lambda = new ML.Lambda(config, function(err) {
-            expect(err).to.not.exist();
-            lambda.insertData({hit: "bingo"}, function(err, results) {
-                expect(err).to.not.exist();
+        lambda.start(function() {
+            lambda.insert({ua: "iphone"}, function(err, results) {
             });
-
-            lambda.insertReport(report, function(err, results) {
-                expect(err).to.not.exist();
-
-                setTimeout(function(){
-                    mongo.batchMaster.count(function(err, count) {
-                        expect(count).to.equal(0);
-                        done();
-                    });
-                }, config.batchLayer.dataRetention + 1000)
-            });
-
-
-        });
+            setTimeout(function(){
+                mongo.master.count(function(err, count) {
+                    console.log('COUNTING')
+                    expect(count).to.equal(0);
+                    done();
+                });
+            }, config.dataRetention + 1000);
+        })
     });
 
-    
+
 });
