@@ -12,12 +12,6 @@ lambda.reports([{
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
     timezone: "US"
-},
-{
-    name: "docCount2",
-    agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
-    cron: "*/5 * * * * *",
-    timezone: "US"
 }]);
 
 
@@ -31,4 +25,3 @@ lambda.start(function() {
         });
     }, 1000);
 })
-
