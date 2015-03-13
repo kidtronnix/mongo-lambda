@@ -1,23 +1,35 @@
 var ML = require('..');
 
 var lambda = new ML.Lambda({
-    masterCollection: "master",
-    dataRetention: 2*60*1000,
-    scrubCron: '*/20 * * * * *',
-    scrubCronTimezone: 'US'
+    masterCollection: "hits",
+    scrubAtStart: false
 });
 
 lambda.reports([{
-    name: "job1",
+    name: "hitCount",
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
     timezone: "US"
 }]);
 
 lambda.start(function() {
+    //Drip data
     setInterval(function() {
-        var query = { name: report.name }
-        lambda.getResults('job1', query, function(err, batches, onTheFly) {
+        lambda.insert({ua: "iphone"}, function(err, results) {
+            if (err) {
+                console.warn("ERROR DRIPING DATA: "+err.message);
+            }
+            
+            console.log(' imp!');
+            console.log('---------------------');
+            
+        });
+    }, 1000);
+
+    // Get Results
+    setInterval(function() {
+        var query = { name: 'hitCount' }
+        lambda.getResults('hitCount', query, function(err, batches, onTheFly) {
             if (err) {
                 console.warn("ERROR GETTING REPORT: "+err.message);
             }

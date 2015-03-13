@@ -13,19 +13,17 @@ A mongo [lambda architecture](http://www.manning.com/marz/) implementation with 
 ```js
 var ML = require('..');
 
-var lambda = new ML.Lambda({
-    masterCollection: "master",
-    dataRetention: 2*60*1000,
-    scrubCron: '*/20 * * * * *',
-    scrubCronTimezone: 'US'
+var lambda = new ML.Lambda({ 
+    masterCollection: "imps",
+    srubAtStart: true
 });
 
-lambda.report({
+lambda.reports([{
     name: "job1",
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
     timezone: "US"
-});
+}]);
 
 lambda.start(function() {
     setInterval(function() {
