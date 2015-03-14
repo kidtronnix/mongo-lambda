@@ -11,24 +11,38 @@ A mongo [lambda architecture](http://www.manning.com/marz/) implementation with 
 ### Usage
 
 ```js
-var ML = require('..');
+var ML = require('mongo-lambda');
 
-var lambda = new ML.Lambda({ 
-    masterCollection: "imps",
-    srubAtStart: true
+var lambda = new ML.Lambda({
+    masterCollection: "hits",
+    scrubAtStart: true
 });
 
 lambda.reports([{
-    name: "job1",
+    name: "hitCount",
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
     timezone: "US"
 }]);
 
 lambda.start(function() {
+    //Drip data
     setInterval(function() {
-        var query = { name: report.name }
-        lambda.getResults('job1', query, function(err, batches, onTheFly) {
+        lambda.insert({ua: "iphone"}, function(err, results) {
+            if (err) {
+                console.warn("ERROR DRIPING DATA: "+err.message);
+            }
+
+            console.log(' imp!');
+            console.log('---------------------');
+            
+        });
+    }, 1000);
+
+    // Get Results
+    setInterval(function() {
+        var query = { name: 'hitCount' }
+        lambda.getResults('hitCount', query, function(err, batches, onTheFly) {
             if (err) {
                 console.warn("ERROR GETTING REPORT: "+err.message);
             }
@@ -52,14 +66,13 @@ lambda.start(function() {
 
         });
     }, 1000);
-})
+});
 ```
 
 ### Responsibilities of Module
 
- - Generating recurring reports in batch layer. Will run using `$aggPipeline`.
- - Scrub data from batch (speed also) layer's master collections after it expires past `dataRentention`.
- - Scrub data from delta when batch agg is produced.
+ - Generating recurring batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object, `agg`.
+ - Scrub data from delta when bactch report is prooduced.
 
 ### API
 
@@ -72,8 +85,6 @@ Will insert data into batch and speed layer's mongo collection.
 Will insert report into system and start new cron job to run supplied agg.
 
 ### `.getResults('trendingTop100', [options], callback)`
-
-Fetches a **"trendingTop100"** report this will use the supplied `combine` function.
 
 #### NOTE
 

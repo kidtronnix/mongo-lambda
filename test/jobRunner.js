@@ -27,30 +27,6 @@ describe('Job Runner', function () {
         scrubCronTimezone: 'US'
     };
 
-    it('scrubs data from batch layer', { timeout: config.dataRetention + 5000 }, function (done) {
-
-        var lambda = new ML.Lambda(config);
-
-        lambda.reports([{
-            name: "docCount",
-            agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
-            cron: "*/5 * * * * *",
-            timezone: "US"
-        }]);
-
-
-        lambda.start(function() {
-            lambda.insert({ua: "iphone"}, function(err, results) {
-            });
-            setTimeout(function(){
-                mongo.master.count(function(err, count) {
-                    console.log('COUNTING')
-                    expect(count).to.equal(0);
-                    done();
-                });
-            }, config.dataRetention + 1000);
-        })
-    });
 
 
 });

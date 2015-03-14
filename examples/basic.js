@@ -2,7 +2,7 @@ var ML = require('..');
 
 var lambda = new ML.Lambda({
     masterCollection: "hits",
-    scrubAtStart: false
+    scrubAtStart: true
 });
 
 lambda.reports([{
@@ -19,7 +19,7 @@ lambda.start(function() {
             if (err) {
                 console.warn("ERROR DRIPING DATA: "+err.message);
             }
-            
+
             console.log(' imp!');
             console.log('---------------------');
             
@@ -53,7 +53,4 @@ lambda.start(function() {
 
         });
     }, 1000);
-})
-
-
-//
+});

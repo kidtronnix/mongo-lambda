@@ -19,9 +19,7 @@ describe('Mongo Lambda API', function () {
 
     var config = {
         masterCollection: "master",
-        dataRetention: 2*60*1000,
-        scrubCron: '*/20 * * * * *',
-        scrubCronTimezone: 'US'
+        scrubAtStart: true
     };
 
     it('validates good configuration', function (done) {
