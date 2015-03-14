@@ -71,7 +71,7 @@ lambda.start(function() {
 
 ### Responsibilities of Module
 
- - Generating recurring batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object, `agg`.
+ - Generating batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) batch at scheduled `cron, using supplied `agg` object.
  - Scrub data from delta when bactch report is prooduced.
 
 ### API
@@ -80,7 +80,7 @@ lambda.start(function() {
 
 Will insert data into batch and speed layer's mongo collection.
 
-### `.report(report, callback)`
+### `.reports(reports, callback)`
 
 Will insert report into system and start new cron job to run supplied agg.
 
