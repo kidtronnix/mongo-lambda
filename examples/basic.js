@@ -1,8 +1,10 @@
 var ML = require('..');
 
 var lambda = new ML.Lambda({
-    masterCollection: "hits",
-    scrubAtStart: true
+    host: 'localhost',
+    port: 27017,
+    db: 'lambda-db',
+    masterColl: "hits"
 });
 
 lambda.reports([{

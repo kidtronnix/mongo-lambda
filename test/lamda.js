@@ -18,8 +18,10 @@ var expect = Code.expect;
 describe('Mongo Lambda API', function () {
 
     var config = {
-        masterCollection: "master",
-        scrubAtStart: true
+        host: 'localhost',
+        port: 27017,
+        db: 'lambda-db',
+        masterColl: "master"
     };
 
     it('validates good configuration', function (done) {
