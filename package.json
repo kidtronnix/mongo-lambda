@@ -13,9 +13,13 @@
   },
   "keywords": [
     "mongo",
-    "lambda"
+    "lambda",
+    "big-data",
+    "big",
+    "data",
+    "reporting"
   ],
-  "author": "kidtronnix",
+  "author": "Simon Maxwell-Stewart",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/smaxwellstewart/mongo-lambda/issues"
