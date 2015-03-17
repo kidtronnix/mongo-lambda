@@ -160,8 +160,7 @@ describe('Mongo Lambda API', function () {
         })
     });
 
-
-    it('gets bactches and live data', { timeout: 7000}, function (done) {
+    it('gets bactches and live data', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
         lambda.reports([testReports[3]]);
 
@@ -203,11 +202,11 @@ describe('Mongo Lambda API', function () {
                     
                     
                 });
-            }, 1000);
+            }, 500);
 
             setTimeout(function() {
                 done();
-            }, 6500);
+            }, 10*1000 + 500);
 
         })
     });
