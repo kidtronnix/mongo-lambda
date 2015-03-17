@@ -169,11 +169,10 @@ describe('Mongo Lambda API', function () {
             //Drip data
             var i = 0;
             setInterval(function() {
-                console.log(new Date());
                 lambda.insert({ua: "iphone"}, function(err, results) {
                     
-                    console.log(' imp!');
-                    console.log('---------------------');
+                    // console.log(' imp!');
+                    // console.log('---------------------');
 
                     
                     lambda.getResults('report4', {}, function(err, batches, onTheFly) {
@@ -194,9 +193,9 @@ describe('Mongo Lambda API', function () {
                             total = total + onTheFly[0].count;
                         }
 
-                        console.log('---------------------');
-                        console.log('TOTAL COUNT: '+total)
-                        console.log('---------------------\n');
+                        // console.log('---------------------');
+                        // console.log('TOTAL COUNT: '+total)
+                        // console.log('---------------------\n');
                         // console.log(new Date());
 
                         expect(total).to.equal(i);
