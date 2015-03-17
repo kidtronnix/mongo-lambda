@@ -175,7 +175,7 @@ describe('Mongo Lambda API', function () {
                     // console.log('---------------------');
 
                     
-                    lambda.getResults('report4', {}, function(err, batches, onTheFly) {
+                    lambda.getResults('report4', function(err, batches, onTheFly) {
                         i++;
                         // expect(err).to.not.exist();
                         var total = 0;
@@ -186,10 +186,10 @@ describe('Mongo Lambda API', function () {
                             }
 
                         })
-                        console.log('batch layer: '+ total)
+                        // console.log('batch layer: '+ total)
 
                         if(onTheFly.length > 0) {
-                            console.log('speed layer: '+ onTheFly[0].count)
+                            // console.log('speed layer: '+ onTheFly[0].count)
                             total = total + onTheFly[0].count;
                         }
 

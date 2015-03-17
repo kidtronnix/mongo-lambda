@@ -87,4 +87,4 @@ Will insert data into batch and speed layer's mongo collection.
 
 Will insert report into system and start new cron job to run supplied agg.
 
-#### `.getResults('trendingTop100', [query], callback)`
+#### `.getResults('trendingTop100', callback)`
