@@ -27,7 +27,7 @@ lambda.reports([{
 	        $sort : { hits : -1} 
 	    }
 	],
-    cron: "*/15 * * * *",
+    cron: "0 * * * *",
     timezone: "EST"
 }]);
 
@@ -51,3 +51,10 @@ lambda.start(function() {
 		}); 	
 	}, 2000);
 });
+
+// AGG TO RUN AGAINST BATCH TO QUERY SPECIFIC TERM
+var batchAgg = [
+    { $unwind: '$data' },
+    { $match : { "data._id" : /god/ } },
+    { $project: { _id: "$data._id", hits: "$data.hits", s: "$data.s", t: "$data.t", g: "$data.g"}}
+];
