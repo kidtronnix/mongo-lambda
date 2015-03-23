@@ -143,6 +143,23 @@ describe('Mongo Lambda API', function () {
         })
     });
 
+    it('inserts array of data into master collections', function (done) {
+        var lambda = new ML.Lambda(config);
+
+        lambda.reports([testReports[1]]);
+
+        lambda.start(function() {
+            lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
+                mongo.master.find({ua: "specific2"}).toArray(function(err, doc) {
+                    expect(err).to.not.exist();
+                    expect(doc).to.exist();
+                    expect(doc.length).to.equal(2);
+                    done();  
+                })
+            });
+        })
+    });
+
     it('inserts data into speed collections', function (done) {
         var lambda = new ML.Lambda(config);
 
@@ -154,6 +171,23 @@ describe('Mongo Lambda API', function () {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(1);
+                    done();
+                })
+            });
+        })
+    });
+
+    it('inserts array of data into speed collections', function (done) {
+        var lambda = new ML.Lambda(config);
+
+        lambda.reports([testReports[2]]);
+
+        lambda.start(function() {
+            lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
+                mongo.speed['report3'].find({ua: "specific2"}).toArray(function(err, doc) {
+                    expect(err).to.not.exist();
+                    expect(doc).to.exist();
+                    expect(doc.length).to.equal(2);
                     done();
                 })
             });
