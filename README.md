@@ -3,7 +3,7 @@ mongo-lambda
 
 [![Build Status](https://travis-ci.org/smaxwellstewart/mongo-lambda.svg?branch=master)](https://travis-ci.org/smaxwellstewart/mongo-lambda)
 
-**version: *alpha***
+version: ***alpha***
 
 A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
