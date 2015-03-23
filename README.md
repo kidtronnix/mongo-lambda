@@ -3,7 +3,7 @@ mongo-lambda
 
 [![Build Status](https://travis-ci.org/smaxwellstewart/mongo-lambda.svg?branch=master)](https://travis-ci.org/smaxwellstewart/mongo-lambda)
 
-**version: *alpha***
+version: ***alpha***
 
 A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
@@ -91,6 +91,7 @@ Will insert array of reports into system and start new cron job to run using the
 - name: Name of report, used to refer to later.
 - agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object.
 - cron: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
+- timezone: The timezone of the cron job.
 
 #### `.getResults(report.name, callback)`
 

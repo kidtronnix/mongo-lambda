@@ -21,25 +21,25 @@ var testReports = internals.testReports = [{
         name: "report1",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
         cron: "*/5 * * * * *",
-        timezone: "US"
+        timezone: "EST"
     },
     {
         name: "report2",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
         cron: "*/5 * * * * *",
-        timezone: "US"
+        timezone: "EST"
     },
     {
         name: "report3",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
         cron: "*/5 * * * * *",
-        timezone: "US"
+        timezone: "EST"
     },
     {
         name: "report4",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
         cron: "*/5 * * * * *",
-        timezone: "US"
+        timezone: "EST"
 }];
 
 internals.scrubMaster = function(next) {
