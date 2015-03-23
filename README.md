@@ -91,6 +91,7 @@ Will insert array of reports into system and start new cron job to run using the
 - name: Name of report, used to refer to later.
 - agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object.
 - cron: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
+- timezone: The timezone of the cron job.
 
 #### `.getResults(report.name, callback)`
 
