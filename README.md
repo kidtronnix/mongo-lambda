@@ -3,9 +3,11 @@ mongo-lambda
 
 [![Build Status](https://travis-ci.org/smaxwellstewart/mongo-lambda.svg?branch=master)](https://travis-ci.org/smaxwellstewart/mongo-lambda)
 
+A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
+
 version: ***alpha***
 
-A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
+### Data Model
 
 The data model is based on an stream processing / event sourcing ([more info](http://blog.confluent.io/2015/01/29/making-sense-of-stream-processing/)) model, where all data points are treated as immutable facts that are then aggregated into batches at regular intervals. This provides safety against dev mistakes when creating new reports, as raw data can be past processed at any point in the future. On top of this speed collections are created that temporarily store data until a batch aggregation has been produced, after this the raw data is cleared from the speed collection. This keeps the speed collections small in size, so quick to query for near *realtime* results.
 

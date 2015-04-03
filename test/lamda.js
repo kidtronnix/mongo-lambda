@@ -40,6 +40,13 @@ var testReports = internals.testReports = [{
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
         cron: "*/5 * * * * *",
         timezone: "EST"
+},
+{
+        name: "report5",
+        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
+        cron: "* * * * * *",
+        timezone: "EST",
+        startCron: false
 }];
 
 internals.scrubMaster = function(next) {
@@ -194,6 +201,20 @@ describe('Mongo Lambda API', function () {
         })
     });
 
+    it('can start without starting cron', function (done) {
+        var lambda = new ML.Lambda(config);
+        lambda.reports([testReports[4]]);
+
+        lambda.start(function() {
+            setTimeout(function() {
+                lambda.getResults('report5', function(err, batches, onTheFly) {
+                    expect(batches.length).to.equal(0);
+                    done();
+                });
+            }, 1500);
+        });
+    });
+
     it('gets bactches and live data', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
         lambda.reports([testReports[3]]);
@@ -244,5 +265,6 @@ describe('Mongo Lambda API', function () {
 
         })
     });
+
 
 });

@@ -1,6 +1,6 @@
 {
   "name": "mongo-lambda",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A mongo lambda architecture implementation with simple API for providing mongo's aggregation pipepline reports.",
   "main": "index.js",
   "scripts": {
