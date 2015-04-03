@@ -3,7 +3,7 @@ var ML = require('..');
 var lambda = new ML.Lambda({
     host: 'localhost',
     port: 27017,
-    db: 'faps',
+    db: 'docs',
     masterColl: "searches"
 });
 
@@ -11,7 +11,8 @@ lambda.reports([{
     name: "docCount",
     agg: [{ $group: {_id: null, count: { $sum: 1 }}}],
     cron: "*/5 * * * * *",
-    timezone: "EST"
+    timezone: "EST",
+    startCron: true
 }]);
 
 lambda.start(function() {
