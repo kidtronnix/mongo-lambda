@@ -207,7 +207,7 @@ describe('Mongo Lambda API', function () {
 
         lambda.start(function() {
             setTimeout(function() {
-                lambda.getResults('report5', function(err, batches, onTheFly) {
+                lambda.batches('report5', function(err, batches) {
                     expect(batches.length).to.equal(0);
                     done();
                 });
@@ -228,13 +228,15 @@ describe('Mongo Lambda API', function () {
                     // console.log(' imp!');
                     // console.log('---------------------');
 
-                    
-                    lambda.getResults('report4', function(err, batches, onTheFly) {
+                    Async.parallel({
+                        batches: Async.apply(lambda.batches, 'report4'),
+                        onTheFly: Async.apply(lambda.speedAgg, 'report4')
+                    }, function(err, results){
                         i++;
                         // expect(err).to.not.exist();
                         var total = 0;
 
-                        batches.forEach(function(batch) {
+                        results.batches.forEach(function(batch) {
                             if (batch.data.length > 0) {
                                 total = total + batch.data[0].count;
                             }
@@ -242,9 +244,9 @@ describe('Mongo Lambda API', function () {
                         })
                         // console.log('batch layer: '+ total)
 
-                        if(onTheFly.length > 0) {
+                        if(results.onTheFly.length > 0) {
                             // console.log('speed layer: '+ onTheFly[0].count)
-                            total = total + onTheFly[0].count;
+                            total = total + results.onTheFly[0].count;
                         }
 
                         // console.log('---------------------');
