@@ -9,7 +9,7 @@ version: ***beta***
 
 ### Data Model
 
-The data model is based on an [stream processing / event sourcing](http://blog.confluent.io/2015/01/29/making-sense-of-stream-processing/)) model. All data points are treated as immutable facts that are then aggregated into batches at regular intervals. This provides safety against dev mistakes when creating new reports, as raw data can be past processed at any point in the future. On top of this speed collections are created that temporarily store data until a batch aggregation has been produced, after this the raw data is cleared from the speed collection. This keeps the speed collections small in size, so quick to query for near *realtime* results.
+The data model is based on an [stream processing / event sourcing](http://blog.confluent.io/2015/01/29/making-sense-of-stream-processing/) model. All data points are treated as immutable facts that are then aggregated into batches at regular intervals. This provides safety against dev mistakes when creating new reports, as raw data can be past processed at any point in the future. On top of this speed collections are created that temporarily store data until a batch aggregation has been produced, after this the raw data is cleared from the speed collection. This keeps the speed collections small in size, so quick to query for near *realtime* results.
 
 ### Usage
 
@@ -49,7 +49,6 @@ lambda.start(function() {
                     }
 
                 })
-                console.log('batch layer: '+ total)
 
                 if(results.onTheFly.length > 0) {
                     total = total + results.onTheFly[0].count;
@@ -67,8 +66,8 @@ lambda.start(function() {
 ### Responsibilities of Module
 
  - Inserting data into master and and each reports speed collection. All data is timestamped by adding a  `_ts` field.
- - Generating batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) batch at scheduled `cron`, using supplied `agg` object.
- - Scrub data from speed collection when bactch report is prooduced.
+ - Generating batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) batch at scheduled `cron`, using supplied `agg` array.
+ - Scrub data from speed collection when bactch report is produced.
 
 ### API
 
@@ -77,10 +76,10 @@ lambda.start(function() {
 Will insert array of reports into system and start new cron job to run using their supplied `agg`. A report has the following structure:
 
 - name: Name of report, used to refer to later.
-- agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object.
+- agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) array.
 - cron: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
 - timezone: The timezone of the cron job.
-- startCron: Whether to start the cron, useful if you want to have separate instances for inserting and getting data.
+- startCron: Whether to start the cron (defaults to true), useful if you want to have separate instances for inserting and getting data.
 
 #### `.start(callback)`
 
@@ -93,13 +92,9 @@ Will insert data into batch and speed layer's mongo collection. Accepts data obj
 
 #### `.batches(report.name, callback)`
 
-Get's batches of data produced by cron job. Callback has following signature:
-
-`function(err, batches)`.
+Get's batches of data produced by cron job. Callback has following signature: `function(err, batches)`.
 
 #### `.speedAgg(report.name, callback)`
 
-Get's a speed aggregation on speed collection, ie data that has not yet been batched. Callback has following signature:
-
-`function(err, speedAgg)`.
+Get's a speed aggregation on speed collection, ie data that has not yet been batched. Callback has following signature: `function(err, speedAgg)`.
 
