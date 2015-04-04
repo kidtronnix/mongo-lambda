@@ -256,8 +256,6 @@ describe('Mongo Lambda API', function () {
 
                         expect(total).to.equal(i);
                     });
-                    
-                    
                 });
             }, 500);
 
