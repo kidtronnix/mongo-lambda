@@ -66,8 +66,8 @@ lambda.start(function() {
 ### Responsibilities of Module
 
  - Inserting data into master and and each reports speed collection. All data is timestamped by adding a  `_ts` field.
- - Generating batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) batch at scheduled `cron`, using supplied `agg` object.
- - Scrub data from speed collection when bactch report is prooduced.
+ - Generating batch reports. Will run a [mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) batch at scheduled `cron`, using supplied `agg` array.
+ - Scrub data from speed collection when bactch report is produced.
 
 ### API
 
@@ -76,7 +76,7 @@ lambda.start(function() {
 Will insert array of reports into system and start new cron job to run using their supplied `agg`. A report has the following structure:
 
 - name: Name of report, used to refer to later.
-- agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) object.
+- agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) array.
 - cron: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
 - timezone: The timezone of the cron job.
 - startCron: Whether to start the cron (defaults to true), useful if you want to have separate instances for inserting and getting data.
