@@ -52,7 +52,7 @@ var testReports = internals.testReports = [{
 internals.scrubMaster = function(next) {
     mongo.db.collection('master').remove({}, function(err, noDocs) {
         expect(err).to.not.exist();
-        next(err);        
+        next(err);
     })
 }
 
@@ -65,7 +65,7 @@ internals.scrubSpeed = function(next) {
     })
 
     next();
-    
+
 }
 
 internals.scrubBatches = function(next) {
@@ -77,15 +77,14 @@ internals.scrubBatches = function(next) {
     })
 
     next();
-    
+
 }
 
 
 describe('Mongo Lambda API', function () {
 
     var config = {
-        host: 'localhost',
-        port: 27017,
+        url: 'mongodb://localhost:27017',
         db: 'mongo-lambda-test',
         masterColl: "master"
     };
@@ -144,7 +143,7 @@ describe('Mongo Lambda API', function () {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(1);
-                    done();  
+                    done();
                 })
             });
         })
@@ -161,7 +160,7 @@ describe('Mongo Lambda API', function () {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(2);
-                    done();  
+                    done();
                 })
             });
         })
@@ -224,7 +223,7 @@ describe('Mongo Lambda API', function () {
             var i = 0;
             setInterval(function() {
                 lambda.insert({ua: "iphone"}, function(err, results) {
-                    
+
                     // console.log(' imp!');
                     // console.log('---------------------');
 
