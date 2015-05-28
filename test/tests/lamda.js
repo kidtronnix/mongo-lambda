@@ -1,9 +1,9 @@
-var ML = require('../lib');
+var ML = require('../../lib');
 var Lab = require('lab');
 var Code = require('code');
 var Async = require('async');
-var Batch = require('../lib/batchLayer');
-var mongo = require('../lib/mongo');
+var Batch = require('../../lib/batchLayer');
+var mongo = require('../../lib/mongo');
 
 
 // Declare internals
@@ -17,37 +17,7 @@ var describe = lab.describe;
 var it = lab.it;
 var expect = Code.expect;
 
-var testReports = internals.testReports = [{
-        name: "report1",
-        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "*/5 * * * * *",
-        timezone: "EST"
-    },
-    {
-        name: "report2",
-        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "*/5 * * * * *",
-        timezone: "EST"
-    },
-    {
-        name: "report3",
-        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "*/5 * * * * *",
-        timezone: "EST"
-    },
-    {
-        name: "report4",
-        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "*/5 * * * * *",
-        timezone: "EST"
-},
-{
-        name: "report5",
-        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "* * * * * *",
-        timezone: "EST",
-        startCron: false
-}];
+var testReports = internals.testReports = require('../reports.js');
 
 internals.scrubMaster = function(next) {
     mongo.db.collection('master').remove({}, function(err, noDocs) {
@@ -57,41 +27,42 @@ internals.scrubMaster = function(next) {
 }
 
 internals.scrubSpeed = function(next) {
-
-    testReports.forEach(function(report) {
-        mongo.db.collection(report.name+'_delta').remove({}, function(err, noDocs) {
-            expect(err).to.not.exist();
-        })
-    })
+    Object.keys(testReports).forEach(function(key) {
+      mongo.db.collection(testReports[key].name+'_delta').remove({}, function(err, noDocs) {
+        expect(err).to.not.exist();
+      });
+    });
 
     next();
 
 }
 
 internals.scrubBatches = function(next) {
-
-    testReports.forEach(function(report) {
-        mongo.db.collection(report.name+'_batches').remove({}, function(err, noDocs) {
-            expect(err).to.not.exist();
-        })
-    })
+    Object.keys(testReports).forEach(function(key) {
+      mongo.db.collection(testReports[key].name+'_batches').remove({}, function(err, noDocs) {
+        expect(err).to.not.exist();
+      });
+    });
 
     next();
 
 }
 
 
-describe('Mongo Lambda API', function () {
+describe('Mongo Lambda', function () {
 
     var config = {
-        url: 'mongodb://localhost:27017',
-        db: 'mongo-lambda-test',
+        url: 'mongodb://localhost:27017/mongo-lambda-test',
         masterColl: "master"
     };
 
     beforeEach(function(done) {
+      var testsArray = [];
+      Object.keys(testReports).forEach(function(key) {
+        testsArray.push(testReports[key])
+      });
         Async.series({
-            insertReports: Async.apply(Batch.insertReports, testReports),
+            insertReports: Async.apply(Batch.insertReports, testsArray),
             mongoInit: Async.apply(mongo.init, config),
             scrubMaster: internals.scrubMaster,
             scrubSpeed: internals.scrubSpeed,
@@ -124,7 +95,7 @@ describe('Mongo Lambda API', function () {
         var start = function () {
             var lambda = new ML.Lambda(config);
 
-            lambda.reports([testReports[0]]);
+            lambda.reports([testReports.startTest]);
 
             lambda.start(function() {})
         };
@@ -135,7 +106,7 @@ describe('Mongo Lambda API', function () {
     it('inserts data into master collections', function (done) {
         var lambda = new ML.Lambda(config);
 
-        lambda.reports([testReports[1]]);
+        lambda.reports([testReports.insertMasterTest]);
 
         lambda.start(function() {
             lambda.insert({ua: "specific"}, function(err, results) {
@@ -152,7 +123,7 @@ describe('Mongo Lambda API', function () {
     it('inserts array of data into master collections', function (done) {
         var lambda = new ML.Lambda(config);
 
-        lambda.reports([testReports[1]]);
+        lambda.reports([testReports.insertMasterTest]);
 
         lambda.start(function() {
             lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
@@ -169,11 +140,11 @@ describe('Mongo Lambda API', function () {
     it('inserts data into speed collections', function (done) {
         var lambda = new ML.Lambda(config);
 
-        lambda.reports([testReports[2]]);
+        lambda.reports([testReports.insertSpeedTest]);
 
         lambda.start(function() {
             lambda.insert({ua: "specific"}, function(err, results) {
-                mongo.speed['report3'].find({ua: "specific"}).toArray(function(err, doc) {
+                mongo.speed[testReports.insertSpeedTest.name].find({ua: "specific"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(1);
@@ -186,11 +157,11 @@ describe('Mongo Lambda API', function () {
     it('inserts array of data into speed collections', function (done) {
         var lambda = new ML.Lambda(config);
 
-        lambda.reports([testReports[2]]);
+        lambda.reports([testReports.insertSpeedTest]);
 
         lambda.start(function() {
             lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
-                mongo.speed['report3'].find({ua: "specific2"}).toArray(function(err, doc) {
+                mongo.speed[testReports.insertSpeedTest.name].find({ua: "specific2"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(2);
@@ -202,11 +173,11 @@ describe('Mongo Lambda API', function () {
 
     it('can start without starting cron', function (done) {
         var lambda = new ML.Lambda(config);
-        lambda.reports([testReports[4]]);
+        lambda.reports([testReports.startNoCronTest]);
 
         lambda.start(function() {
             setTimeout(function() {
-                lambda.batches('report5', function(err, batches) {
+                lambda.batches(testReports.startNoCronTest.name, function(err, batches) {
                     expect(batches.length).to.equal(0);
                     done();
                 });
@@ -214,27 +185,67 @@ describe('Mongo Lambda API', function () {
         });
     });
 
-    it('gets bactches and live data', { timeout: 60*1000 +1000}, function (done) {
+    it('data expires when ttl is set', function(done) {
+      var ttlConfig = config;
+      ttlConfig.ttl = 1;
+      var lambda = new ML.Lambda(config);
+
+      lambda.reports([testReports.ttlTest]);
+
+      var startLambda = function(next) {
+        lambda.start(function(){
+          next();
+        });
+      };
+
+      var insertData = function(next) {
+       lambda.insert({ua: "iphone"}, function(err, results) {
+         expect(err).to.not.exist();
+         next(err);
+       });
+      };
+      
+      var checkResults = function(next) {
+        setTimeout(function(){
+          mongo.master.find({ua: "specific2"}).toArray(function(err, doc) {
+            expect(err).to.not.exist();
+            expect(doc.length).to.equal(0);
+            next();
+            done();
+          });
+        }, 1500);
+      };
+
+      Async.series([
+          startLambda,
+          insertData,
+          checkResults
+      ],
+      function(err, results) {
+        done();
+      });
+
+    });
+
+    it('keeps correct total', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
-        lambda.reports([testReports[3]]);
+        lambda.reports([testReports.totalTest]);
 
         lambda.start(function() {
             //Drip data
             var i = 0;
             setInterval(function() {
                 lambda.insert({ua: "iphone"}, function(err, results) {
-
                     // console.log(' imp!');
                     // console.log('---------------------');
 
                     Async.parallel({
-                        batches: Async.apply(lambda.batches, 'report4'),
-                        onTheFly: Async.apply(lambda.speedAgg, 'report4')
+                        batches: Async.apply(lambda.batches, testReports.totalTest.name),
+                        onTheFly: Async.apply(lambda.speedAgg, testReports.totalTest.name)
                     }, function(err, results){
                         i++;
                         // expect(err).to.not.exist();
                         var total = 0;
-
                         results.batches.forEach(function(batch) {
                             if (batch.data.length > 0) {
                                 total = total + batch.data[0].count;
@@ -252,7 +263,6 @@ describe('Mongo Lambda API', function () {
                         // console.log('TOTAL COUNT: '+total)
                         // console.log('---------------------\n');
                         // console.log(new Date());
-
                         expect(total).to.equal(i);
                     });
                 });
