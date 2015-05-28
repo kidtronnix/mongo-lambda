@@ -47,6 +47,19 @@ internals.scrubBatches = function(next) {
     next();
 
 }
+internals.startLambda = function(lambda, next) {
+  lambda.start(function(){
+    next();
+  });
+};
+
+internals.insertData = function(lambda, next) {
+  lambda.insert({ua: "iphone"}, function(err, results) {
+    expect(err).to.not.exist();
+    next(err);
+  });
+};
+      
 
 
 describe('Mongo Lambda', function () {
@@ -185,44 +198,32 @@ describe('Mongo Lambda', function () {
         });
     });
 
-    it('data expires when ttl is set', function(done) {
-      var ttlConfig = config;
-      ttlConfig.ttl = 1;
-      var lambda = new ML.Lambda(config);
-
-      lambda.reports([testReports.ttlTest]);
-
-      var startLambda = function(next) {
-        lambda.start(function(){
-          next();
-        });
+    it('data expires when ttl is set', { timeout: 60*1000 }, function(done) {
+      var conf = {
+        url: 'mongodb://localhost:27017/mongo-lambda-test',
+        masterColl: "masterTTL",
+        ttl: 1,
       };
 
-      var insertData = function(next) {
-       lambda.insert({ua: "iphone"}, function(err, results) {
-         expect(err).to.not.exist();
-         next(err);
-       });
-      };
+      var lambda = new ML.Lambda(conf);
       
       var checkResults = function(next) {
         setTimeout(function(){
-          mongo.master.find({ua: "specific2"}).toArray(function(err, doc) {
-            expect(err).to.not.exist();
-            expect(doc.length).to.equal(0);
-            next();
-            done();
-          });
-        }, 1500);
+        }, 20*1000);
       };
+      lambda.reports([testReports.ttlTest]);
 
       Async.series([
-          startLambda,
-          insertData,
-          checkResults
+          Async.apply(internals.startLambda, lambda),
       ],
       function(err, results) {
-        done();
+        expect(err).to.not.exist();
+          mongo.db.collection('masterTTL').indexes(function(err, indexes) {
+            expect(err).to.not.exist();
+             expect(indexes[1].name).to.equal('_ts_1');
+             expect(indexes[1].expireAfterSeconds).to.equal(conf.ttl);
+            done();
+          });
       });
 
     });
@@ -230,50 +231,60 @@ describe('Mongo Lambda', function () {
     it('keeps correct total', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
         lambda.reports([testReports.totalTest]);
+  
+        var i = 0;
+        var increment = function() {
+          
+          Async.series({
+            insert: Async.apply(internals.insertData, lambda),
+            data: Async.apply(getData, lambda),
+          },
+          function(err, results) {
+            expect(err).to.not.exist();
+            i++;
+            var tot = calcTotal(results.data);
+            expect(tot).to.equal(i);
+            
+            if(i < 100) {
+              increment();
+            } else {
+              done();
+            }
+          });
+        }
 
-        lambda.start(function() {
-            //Drip data
-            var i = 0;
-            setInterval(function() {
-                lambda.insert({ua: "iphone"}, function(err, results) {
-                    // console.log(' imp!');
-                    // console.log('---------------------');
+        var getData = function(lambda, next) {
+          setTimeout(function(){
+            Async.parallel({
+              batches: Async.apply(lambda.batches, testReports.totalTest.name),
+              onTheFly: Async.apply(lambda.speedAgg, testReports.totalTest.name)
+            },
+            function(err, results) {
+              expect(err).to.not.exist();
+              next(err, results);
+            });
+          }, 50);
+        }
 
-                    Async.parallel({
-                        batches: Async.apply(lambda.batches, testReports.totalTest.name),
-                        onTheFly: Async.apply(lambda.speedAgg, testReports.totalTest.name)
-                    }, function(err, results){
-                        i++;
-                        // expect(err).to.not.exist();
-                        var total = 0;
-                        results.batches.forEach(function(batch) {
-                            if (batch.data.length > 0) {
-                                total = total + batch.data[0].count;
-                            }
+        var calcTotal = function(results) {
+          var total = 0;
+          results.batches.forEach(function(batch) {
+            if (batch.data.length > 0) {
+              total = total + batch.data[0].count;
+            }
+          })
+          if(results.onTheFly.length > 0) {
+            // console.log('speed layer: '+ onTheFly[0].count)
+            total = total + results.onTheFly[0].count;
+          }
+          return total;
+        }
 
-                        })
-                        // console.log('batch layer: '+ total)
-
-                        if(results.onTheFly.length > 0) {
-                            // console.log('speed layer: '+ onTheFly[0].count)
-                            total = total + results.onTheFly[0].count;
-                        }
-
-                        // console.log('---------------------');
-                        // console.log('TOTAL COUNT: '+total)
-                        // console.log('---------------------\n');
-                        // console.log(new Date());
-                        expect(total).to.equal(i);
-                    });
-                });
-            }, 500);
-
-            setTimeout(function() {
-                done();
-            }, 10*1000 + 500);
-
+        Async.series([
+          Async.apply(internals.startLambda, lambda)
+        ], function(err) {
+          expect(err).to.not.exist();
+          increment();
         })
     });
-
-
 });
