@@ -218,10 +218,15 @@ describe('Mongo Lambda', function () {
       ],
       function(err, results) {
         expect(err).to.not.exist();
-          mongo.db.collection('masterTTL').indexes(function(err, indexes) {
-            expect(err).to.not.exist();
-             expect(indexes[1].name).to.equal('_ts_1');
-             expect(indexes[1].expireAfterSeconds).to.equal(conf.ttl);
+          Async.each(['masterTTL', testReports.ttlTest.name+'_delta'], function(coll, next) {
+            mongo.db.collection(coll).indexes(function(err, indexes) {
+              expect(err).to.not.exist();
+              expect(indexes[1]).to.exist();
+              expect(indexes[1].name).to.equal('_ts_1');
+              expect(indexes[1].expireAfterSeconds).to.equal(conf.ttl);
+              next(err);
+            });
+          }, function(err) {
             done();
           });
       });
