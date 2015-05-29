@@ -5,7 +5,7 @@ mongo-lambda
 
 A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
-version: ***2.1.x***
+version: ***2.2.x***
 
 ### Data Model
 
