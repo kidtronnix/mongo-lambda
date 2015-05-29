@@ -1,4 +1,3 @@
-
 var testReports = {
     startTest: {
         name: "report1",
@@ -34,7 +33,7 @@ var testReports = {
     totalTest: {
         name: "report6",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
-        cron: "*/4 * * * * *",
+        cron: "* * * * * *",
         timezone: "EST"
     },
 };
