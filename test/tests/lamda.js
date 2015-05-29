@@ -249,7 +249,7 @@ describe('Mongo Lambda', function () {
             i++;
             var tot = calcTotal(results.data);
             expect(tot).to.equal(i);
-            
+            //console.log(tot);
             if(i < 100) {
               increment();
             } else {

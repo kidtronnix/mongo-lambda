@@ -1,4 +1,3 @@
-
 var testReports = {
     startTest: {
         name: "report1",
