@@ -2,9 +2,7 @@ var Wreck = require('wreck');
 var ML = require('..');
 
 var lambda = new ML.Lambda({
-    host: 'localhost',
-    port: 27017,
-    db: 'faps',
+    url: "mongodb://stats:happyFAPPING@45.55.216.16:8888,45.55.200.189:8888/faps",
     masterColl: "searches"
 });
 
@@ -27,7 +25,7 @@ lambda.reports([{
 	        $sort : { hits : -1} 
 	    }
 	],
-    cron: "0 * * * *",
+    cron: "*/1 * * * *",
     timezone: "EST"
 }]);
 
