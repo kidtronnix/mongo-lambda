@@ -244,17 +244,16 @@ describe('Mongo Lambda', function () {
 
         var i = 0;
         var increment = function() {
-
           Async.series({
             insert: Async.apply(internals.insertData, lambda),
-            data: Async.apply(getData, lambda),
+            data: Async.apply(getData, lambda)
           },
           function(err, results) {
             expect(err).to.not.exist();
             i++;
             var tot = calcTotal(results.data);
+            // console.log('TOTAL:'+tot);
             expect(tot).to.equal(i);
-            //console.log(tot);
             if(i < 100) {
               increment();
             } else {
@@ -273,7 +272,7 @@ describe('Mongo Lambda', function () {
               expect(err).to.not.exist();
               next(err, results);
             });
-          }, 50);
+          }, 10);
         }
 
         var calcTotal = function(results) {
@@ -283,8 +282,10 @@ describe('Mongo Lambda', function () {
               total = total + batch.data[0].count;
             }
           })
+          // console.log('batch layer: '+ total);
+
           if(results.onTheFly.length > 0) {
-            // console.log('speed layer: '+ onTheFly[0].count)
+            // console.log('speed layer: '+ results.onTheFly[0].count)
             total = total + results.onTheFly[0].count;
           }
           return total;
