@@ -1,9 +1,7 @@
 var ML = require('..');
 
 var lambda = new ML.Lambda({
-    host: 'localhost',
-    port: 27017,
-    db: 'docs',
+    url: 'mongodb://localhost:27017/mongo-lambda-test',
     masterColl: "searches"
 });
 

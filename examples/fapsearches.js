@@ -2,7 +2,7 @@ var Wreck = require('wreck');
 var ML = require('..');
 
 var lambda = new ML.Lambda({
-    url: "mongodb://stats:happyFAPPING@45.55.216.16:8888,45.55.200.189:8888/faps",
+    url: 'mongodb://localhost:27017/mongo-lambda-test',
     masterColl: "searches"
 });
 
