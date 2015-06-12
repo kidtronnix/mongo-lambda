@@ -30,6 +30,13 @@ var testReports = {
         cron: "*/10 * * * * *",
         timezone: "EST"
     },
+    reprocessTest: {
+        name: "reprocessTest",
+        agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],
+        cron: "*/10 * * * * *",
+        timezone: "EST",
+        startCron: false
+    },
     totalTest: {
         name: "report6",
         agg: [{ $group: {_id: '$ua', count: { $sum: 1 }}}],

@@ -5,7 +5,7 @@ mongo-lambda
 
 A [lambda architecture](http://www.manning.com/marz/) implementation for mongodb with simple API for providing mongo's aggregation pipepline reports. Written in javascript designed as an npm module.
 
-version: ***2.1.x***
+version: ***2.2.x***
 
 ### Data Model
 
@@ -17,10 +17,9 @@ The data model is based on an [stream processing / event sourcing](http://blog.c
 var ML = require('mongo-lambda');
 
 var lambda = new ML.Lambda({
-    host: 'localhost',
-    port: 27017,
-    db: 'lambda-db',
-    masterColl: "hits"
+    url: 'mongodb://localhost:27017/hits',
+    masterColl: "hits",
+    ttl: 60*60 // 1 hour
 });
 
 lambda.reports([{
@@ -35,7 +34,6 @@ lambda.start(function() {
     setInterval(function() {
         // Drip data
         lambda.insert({ua: "iphone"}, function(err, results) {
-            
             // Get batches and live data
             Async.parallel({
                 batches: Async.apply(lambda.batches, 'report4'),
@@ -71,20 +69,28 @@ lambda.start(function() {
 
 ### API
 
+#### `.Lambda(config)`
+
+Returns `lambda` instance. Object that has the methods listed underneath. It is configured with the following object:
+
+- `url`: Mongodb url connection string.
+- `masterColl`: Name of master collection.
+- `ttl`: *OPTIONAL* The time-to-live for your master collection. Data in speed collections will also expire after this time. If field is absent data will never expire.
+
 #### `.reports(reports)`
 
 Will insert array of reports into system and start new cron job to run using their supplied `agg`. A report has the following structure:
 
-- name: Name of report, used to refer to later.
-- agg: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) array.
-- cron: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
-- timezone: The timezone of the cron job.
-- startCron: Whether to start the cron (defaults to true), useful if you want to have separate instances for inserting and getting data.
+- `name`: Name of report, used to refer to later.
+- `agg`: [Mongo aggregation pipeline](http://docs.mongodb.org/manual/core/aggregation-pipeline/) array.
+- `cron`: Cron string that defines schedule of when aggregations are run. See [here](https://www.npmjs.com/package/cron) for allowed cron strings.
+- `timezone`: The timezone of the cron job.
+- `startCron`: *OPTIONAL* Whether to start the cron (defaults to true), useful if you want to have separate instances for inserting and getting data.
+- `lateWindow`: *OPTIONAL* Defines the how late data can arrive before batch is computed, *example* wait 5 mins before the last hour's report is calculated.
 
 #### `.start(callback)`
 
 Starts Lambda instance, initialises cron jobs and mongodb. *NOTE!* This function must be called before you can insert or get data, ie before you can call any of the methods below.
-
 
 #### `.insert(data, callback)`
 
@@ -97,4 +103,9 @@ Get's batches of data produced by cron job. Callback has following signature: `f
 #### `.speedAgg(report.name, callback)`
 
 Get's a speed aggregation on speed collection, ie data that has not yet been batched. Callback has following signature: `function(err, speedAgg)`.
+
+#### `.reprocess(report.name, dates, callback)`
+
+Will re-run batch reports according to specified dates. Batches will start from earliest specified date in incrementing chunks until the lastest specified date.
+
 

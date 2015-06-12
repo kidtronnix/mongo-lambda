@@ -2,8 +2,7 @@ var ML = require('../../lib');
 var Lab = require('lab');
 var Code = require('code');
 var Async = require('async');
-var Batch = require('../../lib/batchLayer');
-var mongo = require('../../lib/mongo');
+var MongoClient = require('mongodb').MongoClient;
 
 
 // Declare internals
@@ -20,7 +19,7 @@ var expect = Code.expect;
 var testReports = internals.testReports = require('../reports.js');
 
 internals.scrubMaster = function(next) {
-    mongo.db.collection('master').remove({}, function(err, noDocs) {
+    internals.db.collection('master').remove({}, function(err, noDocs) {
         expect(err).to.not.exist();
         next(err);
     })
@@ -28,7 +27,7 @@ internals.scrubMaster = function(next) {
 
 internals.scrubSpeed = function(next) {
     Object.keys(testReports).forEach(function(key) {
-      mongo.db.collection(testReports[key].name+'_delta').remove({}, function(err, noDocs) {
+      internals.db.collection(testReports[key].name+'_delta').remove({}, function(err, noDocs) {
         expect(err).to.not.exist();
       });
     });
@@ -39,7 +38,7 @@ internals.scrubSpeed = function(next) {
 
 internals.scrubBatches = function(next) {
     Object.keys(testReports).forEach(function(key) {
-      mongo.db.collection(testReports[key].name+'_batches').remove({}, function(err, noDocs) {
+      internals.db.collection(testReports[key].name+'_batches').remove({}, function(err, noDocs) {
         expect(err).to.not.exist();
       });
     });
@@ -59,8 +58,15 @@ internals.insertData = function(lambda, next) {
     next(err);
   });
 };
-      
 
+internals.initDB = function (url, next) {
+
+  MongoClient.connect(url, function(err, db) {
+    expect(err).to.not.exist();
+    internals.db = db;
+    next();
+  });
+};
 
 describe('Mongo Lambda', function () {
 
@@ -75,8 +81,7 @@ describe('Mongo Lambda', function () {
         testsArray.push(testReports[key])
       });
         Async.series({
-            insertReports: Async.apply(Batch.insertReports, testsArray),
-            mongoInit: Async.apply(mongo.init, config),
+            initDB: Async.apply(internals.initDB, config.url),
             scrubMaster: internals.scrubMaster,
             scrubSpeed: internals.scrubSpeed,
             scrubBatches: internals.scrubBatches
@@ -123,7 +128,7 @@ describe('Mongo Lambda', function () {
 
         lambda.start(function() {
             lambda.insert({ua: "specific"}, function(err, results) {
-                mongo.master.find({ua: "specific"}).toArray(function(err, doc) {
+                internals.db.collection('master').find({ua: "specific"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(1);
@@ -140,7 +145,7 @@ describe('Mongo Lambda', function () {
 
         lambda.start(function() {
             lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
-                mongo.master.find({ua: "specific2"}).toArray(function(err, doc) {
+                internals.db.collection('master').find({ua: "specific2"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(2);
@@ -157,7 +162,7 @@ describe('Mongo Lambda', function () {
 
         lambda.start(function() {
             lambda.insert({ua: "specific"}, function(err, results) {
-                mongo.speed[testReports.insertSpeedTest.name].find({ua: "specific"}).toArray(function(err, doc) {
+                internals.db.collection(testReports.insertSpeedTest.name+'_delta').find({ua: "specific"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(1);
@@ -174,7 +179,7 @@ describe('Mongo Lambda', function () {
 
         lambda.start(function() {
             lambda.insert([{ua: "specific2"}, {ua: "specific2"}], function(err, results) {
-                mongo.speed[testReports.insertSpeedTest.name].find({ua: "specific2"}).toArray(function(err, doc) {
+                internals.db.collection(testReports.insertSpeedTest.name+'_delta').find({ua: "specific2"}).toArray(function(err, doc) {
                     expect(err).to.not.exist();
                     expect(doc).to.exist();
                     expect(doc.length).to.equal(2);
@@ -198,7 +203,7 @@ describe('Mongo Lambda', function () {
         });
     });
 
-    it('data expires when ttl is set', { timeout: 60*1000 }, function(done) {
+    it('correctly adds ttl index', { timeout: 60*1000 }, function(done) {
       var conf = {
         url: 'mongodb://localhost:27017/mongo-lambda-test',
         masterColl: "masterTTL",
@@ -206,11 +211,7 @@ describe('Mongo Lambda', function () {
       };
 
       var lambda = new ML.Lambda(conf);
-      
-      var checkResults = function(next) {
-        setTimeout(function(){
-        }, 20*1000);
-      };
+
       lambda.reports([testReports.ttlTest]);
 
       Async.series([
@@ -219,7 +220,7 @@ describe('Mongo Lambda', function () {
       function(err, results) {
         expect(err).to.not.exist();
           Async.each(['masterTTL', testReports.ttlTest.name+'_delta'], function(coll, next) {
-            mongo.db.collection(coll).indexes(function(err, indexes) {
+            internals.db.collection(coll).indexes(function(err, indexes) {
               expect(err).to.not.exist();
               expect(indexes[1]).to.exist();
               expect(indexes[1].name).to.equal('_ts_1');
@@ -233,23 +234,58 @@ describe('Mongo Lambda', function () {
 
     });
 
+    it('can reprocess data', { timeout: 60*1000 }, function(done) {
+      var conf = {
+        url: 'mongodb://localhost:27017/mongo-lambda-test',
+        masterColl: "master"
+      };
+
+      var lambda = new ML.Lambda(conf);
+
+      lambda.reports([testReports.reprocessTest]);
+      
+      var start = new Date();
+      var dates = [start];
+      for(var i = 1; i < 10; i++) {
+        dates.push(new Date(start.getTime() - i * 1000));
+      };
+
+      Async.series([
+          Async.apply(internals.startLambda, lambda),
+          Async.apply(lambda.reprocess, testReports.reprocessTest.name, dates)
+      ],
+      function(err, results) {
+        
+            expect(err).to.not.exist();
+            var find = {
+              from: {$gte: dates[0]},
+              to: {$lte: dates[dates.length -1]}
+            }
+            internals.db.collection(testReports.reprocessTest.name+"_batches").find(find).toArray(function(err, docs) {
+              expect(err).to.not.exist();
+              expect(docs.length).to.equal(dates.length-1);
+              done();
+            });
+          
+      });
+
+    });
     it('keeps correct total', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
         lambda.reports([testReports.totalTest]);
-  
+
         var i = 0;
         var increment = function() {
-          
           Async.series({
             insert: Async.apply(internals.insertData, lambda),
-            data: Async.apply(getData, lambda),
+            data: Async.apply(getData, lambda)
           },
           function(err, results) {
             expect(err).to.not.exist();
             i++;
             var tot = calcTotal(results.data);
+            // console.log('TOTAL:'+tot);
             expect(tot).to.equal(i);
-            //console.log(tot);
             if(i < 100) {
               increment();
             } else {
@@ -268,7 +304,7 @@ describe('Mongo Lambda', function () {
               expect(err).to.not.exist();
               next(err, results);
             });
-          }, 50);
+          }, 10);
         }
 
         var calcTotal = function(results) {
@@ -278,8 +314,10 @@ describe('Mongo Lambda', function () {
               total = total + batch.data[0].count;
             }
           })
+          // console.log('batch layer: '+ total);
+
           if(results.onTheFly.length > 0) {
-            // console.log('speed layer: '+ onTheFly[0].count)
+            // console.log('speed layer: '+ results.onTheFly[0].count)
             total = total + results.onTheFly[0].count;
           }
           return total;
