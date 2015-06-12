@@ -203,7 +203,7 @@ describe('Mongo Lambda', function () {
         });
     });
 
-    it('data expires when ttl is set', { timeout: 60*1000 }, function(done) {
+    it('correctly adds ttl index', { timeout: 60*1000 }, function(done) {
       var conf = {
         url: 'mongodb://localhost:27017/mongo-lambda-test',
         masterColl: "masterTTL",
@@ -212,10 +212,6 @@ describe('Mongo Lambda', function () {
 
       var lambda = new ML.Lambda(conf);
 
-      var checkResults = function(next) {
-        setTimeout(function(){
-        }, 20*1000);
-      };
       lambda.reports([testReports.ttlTest]);
 
       Async.series([
@@ -238,6 +234,42 @@ describe('Mongo Lambda', function () {
 
     });
 
+    it('can reprocess data', { timeout: 60*1000 }, function(done) {
+      var conf = {
+        url: 'mongodb://localhost:27017/mongo-lambda-test',
+        masterColl: "master"
+      };
+
+      var lambda = new ML.Lambda(conf);
+
+      lambda.reports([testReports.reprocessTest]);
+      
+      var start = new Date();
+      var dates = [start];
+      for(var i = 1; i < 10; i++) {
+        dates.push(new Date(start.getTime() - i * 1000));
+      };
+
+      Async.series([
+          Async.apply(internals.startLambda, lambda),
+          Async.apply(lambda.reprocess, testReports.reprocessTest.name, dates)
+      ],
+      function(err, results) {
+        
+            expect(err).to.not.exist();
+            var find = {
+              from: {$gte: dates[0]},
+              to: {$lte: dates[dates.length -1]}
+            }
+            internals.db.collection(testReports.reprocessTest.name+"_batches").find(find).toArray(function(err, docs) {
+              expect(err).to.not.exist();
+              expect(docs.length).to.equal(dates.length-1);
+              done();
+            });
+          
+      });
+
+    });
     it('keeps correct total', { timeout: 60*1000 +1000}, function (done) {
         var lambda = new ML.Lambda(config);
         lambda.reports([testReports.totalTest]);
