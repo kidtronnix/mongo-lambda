@@ -30,7 +30,7 @@
     "cron": "^1.0.8",
     "hoek": "^2.11.0",
     "joi": "^5.1.0",
-    "mongodb": "^1.4.32"
+    "mongodb": "~2.0.35"
   },
   "devDependencies": {
     "code": "^1.3.0",
