@@ -77,7 +77,7 @@ Returns `lambda` instance. Object that has the methods listed underneath. It is 
 - `masterColl`: Name of master collection.
 - `ttl`: *OPTIONAL* The time-to-live for your master collection. Data in speed collections will also expire after this time. If field is absent data will never expire.
 
-#### `.reports(reports)`
+#### `.reports([report])`
 
 Will insert array of reports into system and start new cron job to run using their supplied `agg`. A report has the following structure:
 
@@ -107,5 +107,3 @@ Get's a speed aggregation on speed collection, ie data that has not yet been bat
 #### `.reprocess(report.name, dates, callback)`
 
 Will re-run batch reports according to specified dates. Batches will start from earliest specified date in incrementing chunks until the lastest specified date.
-
-
